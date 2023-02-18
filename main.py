@@ -21,7 +21,12 @@ logger = logging.getLogger(__name__)
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends explanation on how to use the bot."""
-    await update.message.reply_text("Hi! Use /set to receive every day the daily song of the day.")
+    await update.message.reply_text(
+        "Hi!" +
+        "\nUse /set to receive every day the daily song of the day." +
+        "\nUse /unset to stop receiving the daily song of the day." +
+        "\nUse /song to receive a random song."
+        )
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -35,7 +40,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return True
 
 
-async def callback_minute(context: CallbackContext):
+async def callback_daily(context: CallbackContext):
     job = context.job
     random_video = get_random_video()
     await context.bot.send_message(chat_id=job.chat_id,
@@ -48,7 +53,7 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     job_removed = remove_job_if_exists(str(chat_id), context)
     # context.job_queue.run_repeating(callback_minute, chat_id=chat_id, interval=5, first=1)
     # context.job_queue.run_once(callback_minute, due, chat_id=chat_id, name=str(chat_id), data=due)
-    context.job_queue.run_daily(callback_auto_message, time=datetime.time(hour=0, minute=0), days=(0, 1, 2, 3, 4, 5, 6), context=chat_id)
+    context.job_queue.run_daily(callback_daily, time=datetime.time(hour=0, minute=0), days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id)
     text = "Daily song successfully set!"
     if job_removed:
         text += " Old one was removed."
@@ -63,6 +68,12 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
+async def random_song(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sends a random song."""
+    random_video = get_random_video()
+    await update.message.reply_text(random_video)
+
+
 def main() -> None:
     """Start the bot."""
     load_dotenv(".env")
@@ -73,6 +84,7 @@ def main() -> None:
     application.add_handler(CommandHandler(["start", "help"], start))
     application.add_handler(CommandHandler("set", set_timer))
     application.add_handler(CommandHandler("unset", unset))
+    application.add_handler(CommandHandler("song", random_song))
 
 
     # Run the bot until the user presses Ctrl-C
