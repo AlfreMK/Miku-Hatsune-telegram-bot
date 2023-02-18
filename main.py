@@ -1,7 +1,7 @@
-
 import logging
 from os import environ
 from dotenv import load_dotenv
+import datetime
 
 from telegram import __version__ as TG_VER
 from telegram import __version_info__
@@ -14,6 +14,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# code extracted and adapted from https://docs.python-telegram-bot.org/en/stable/examples.timerbot.html
 
 # Define a few command handlers. These usually take the two arguments update and
 # context.
@@ -25,11 +26,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Remove job with given name. Returns whether job was removed."""
-    current_jobs = context.job_queue.get_jobs_by_name(name)
+    current_jobs = context.job_queue.jobs()
     if not current_jobs:
         return False
     for job in current_jobs:
-        job.schedule_removal()
+        if name == str(job.chat_id):
+            job.schedule_removal()
     return True
 
 
@@ -41,15 +43,17 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def callback_minute(context: CallbackContext):
     job = context.job
     await context.bot.send_message(chat_id=job.chat_id,
-                             text='The song of the day')
+                             text='Song of the day: ')
 
 
 async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
     job_removed = remove_job_if_exists(str(chat_id), context)
+    due = 5
     context.job_queue.run_repeating(callback_minute, chat_id=chat_id, interval=5, first=1)
-    # context.job_queue.run_daily(callback_auto_message, time=datetime.time(hour=9, minute=22), days=(0, 1, 2, 3, 4, 5, 6), context=chat_id)
+    # context.job_queue.run_once(callback_minute, due, chat_id=chat_id, name=str(chat_id), data=due)
+    # context.job_queue.run_daily(callback_auto_message, time=datetime.time(hour=0, minute=0), days=(0, 1, 2, 3, 4, 5, 6), context=chat_id)
     text = "Timer successfully set!"
     if job_removed:
         text += " Old one was removed."
@@ -62,6 +66,10 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = "Timer successfully cancelled!" if job_removed else "You have no active timer."
     await update.message.reply_text(text)
 
+def print_debug(*args, **kwargs):
+    print("############################")
+    print(*args, **kwargs)
+    print("############################")
 
 def main() -> None:
     """Start the bot."""
