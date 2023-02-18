@@ -8,7 +8,7 @@ PLAYLISTS = [
 ]
 
 
-def get_random_video():
+def get_random_video() -> str:
     playlist = Playlist(PLAYLISTS[randint(0, len(PLAYLISTS)-1)])
     return playlist.video_urls[randint(0, len(playlist.video_urls)-1)]
 

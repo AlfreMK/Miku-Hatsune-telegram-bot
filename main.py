@@ -46,7 +46,6 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
     job_removed = remove_job_if_exists(str(chat_id), context)
-    due = 5
     # context.job_queue.run_repeating(callback_minute, chat_id=chat_id, interval=5, first=1)
     # context.job_queue.run_once(callback_minute, due, chat_id=chat_id, name=str(chat_id), data=due)
     context.job_queue.run_daily(callback_auto_message, time=datetime.time(hour=0, minute=0), days=(0, 1, 2, 3, 4, 5, 6), context=chat_id)
@@ -55,6 +54,7 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         text += " Old one was removed."
     await update.effective_message.reply_text(text)
 
+
 async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
@@ -62,10 +62,6 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = "Daily song successfully unset!" if job_removed else "You have no active daily song."
     await update.message.reply_text(text)
 
-def print_debug(*args, **kwargs):
-    print("############################")
-    print(*args, **kwargs)
-    print("############################")
 
 def main() -> None:
     """Start the bot."""
