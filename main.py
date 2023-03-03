@@ -77,7 +77,7 @@ async def random_song(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 def main() -> None:
     """Start the bot."""
     load_dotenv(".env")
-    API_KEY = environ['API_KEY']
+    API_KEY = environ['BOT_TOKEN']
     application = Application.builder().token(API_KEY).build()
 
     # on different commands - answer in Telegram
